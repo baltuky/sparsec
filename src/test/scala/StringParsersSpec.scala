@@ -23,6 +23,7 @@
 package scala.parser
 
 import Parsers.Parser
+import StringParsers._
 
 import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
@@ -32,5 +33,10 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
   "string parser" should "parse string prefix" in {
     val string: Parser[String] = StringParsers.string("scala")
     StringParsers.run(string)("scala and java").value should be("scala")
+  }
+
+  "listOfN combinator" should "parse string prefix and return list of results" in {
+    val strings: Parser[List[String]] = listOfN(3, StringParsers.string("A"))
+    StringParsers.run(strings)("AAABBBCCC").value should be(List("A", "A", "A"))
   }
 }

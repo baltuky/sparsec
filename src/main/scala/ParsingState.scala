@@ -22,27 +22,6 @@
 
 package scala.parser
 
-import Parsers.Parser
-
-import scala.language.implicitConversions
-
-object StringParsers extends Parsers[String, Parser] {
-  override def string(s: String): Parser[String] =
-    (state: ParsingState) => {
-      if (state.input.startsWith(s, state.offset)) {
-        Success(state.input.substring(state.offset, state.offset + s.length), s.length)
-      } else Failure(s"Input string doesn't start with `$s`")
-    }
-
-  override def succeed[A](a: A): Parser[A] = (_: ParsingState) => Success(a, 0)
-
-  override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] =
-    (state: ParsingState) =>
-      p(state) match {
-        case Success(a, consumed) => f(a)(state.advanceBy(consumed))
-        case failure: Failure     => failure
-    }
-
-  override def run[A](p: Parser[A])(input: String): Either[String, A] =
-    p(ParsingState(input)).extract
+case class ParsingState(input: String, offset: Int = 0) {
+  def advanceBy(n: Int): ParsingState = copy(offset = offset + n)
 }
