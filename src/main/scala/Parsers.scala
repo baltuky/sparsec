@@ -36,12 +36,13 @@ trait Parsers[Error, Parser[+ _]] { self =>
   def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B]
 
   def map2[A, B, C](p1: Parser[A], p2: => Parser[B])(f: (A, B) => C): Parser[C] =
+    (p1 ** p2).map(f.tupled)
+
+  def product[A, B](p1: => Parser[A], p2: => Parser[B]): Parser[(A, B)] =
     for {
       a <- p1
       b <- p2
-    } yield f(a, b)
-
-  def product[A, B](p1: => Parser[A], p2: => Parser[B]): Parser[(A, B)] = map2(p1, p2)((_, _))
+    } yield (a, b)
 
   def listOfN[A](n: Int, p: Parser[A]): Parser[List[A]] =
     if (n <= 0) succeed(Nil) else map2(p, listOfN(n - 1, p))(_ :: _)
