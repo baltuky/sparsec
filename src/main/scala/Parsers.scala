@@ -23,9 +23,12 @@
 package scala.parser
 
 import scala.language.implicitConversions
+import scala.util.matching.Regex
 
 trait Parsers[Error, Parser[+ _]] { self =>
   def string(s: String): Parser[String]
+
+  def regex(r: Regex): Parser[String]
 
   def succeed[A](a: A): Parser[A]
 

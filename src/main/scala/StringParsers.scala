@@ -26,6 +26,7 @@ import Parsers.Parser
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
+import scala.util.matching.Regex
 
 object StringParsers extends Parsers[String, Parser] {
   override def string(s: String): Parser[String] =
@@ -33,6 +34,13 @@ object StringParsers extends Parsers[String, Parser] {
       if (state.input.startsWith(s, state.offset)) {
         Success(state.slice(s.length), s.length)
       } else Failure(s"Input string doesn't start with `$s`")
+    }
+
+  override def regex(r: Regex): Parser[String] =
+    (state: ParsingState) =>
+      r.findPrefixOf(state.input.substring(state.offset)) match {
+        case Some(prefix) => Success(prefix, prefix.length)
+        case None         => Failure(s"Input prefix doesn't match to `${r.toString()}` regex")
     }
 
   override def many[A](p: Parser[A]): Parser[List[A]] = (state: ParsingState) => {

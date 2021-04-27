@@ -73,4 +73,12 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     StringParsers.run(slice)("ScalaScala").value should have size 0
     StringParsers.run(slice)("").value should have size 0
   }
+
+  "regex parser" should "return input prefix matching to regular expression" in {
+    val regex: Parser[String] = StringParsers.regex("[a-zA-Z0-9]+".r)
+    StringParsers.run(regex)("Java11").value should be("Java11")
+    StringParsers.run(regex)("Scala 13").value should be("Scala")
+    StringParsers.run(regex)("") should be(Symbol("left"))
+    StringParsers.run(regex)("___") should be(Symbol("left"))
+  }
 }
