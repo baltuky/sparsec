@@ -81,4 +81,20 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     StringParsers.run(regex)("") should be(Symbol("left"))
     StringParsers.run(regex)("___") should be(Symbol("left"))
   }
+
+  "skipLeft combinator" should "skip parsed left value" in {
+    val number: Parser[Int] = StringParsers.regex("[a-zA-Z]*".r) *> StringParsers
+      .regex("[0-9]+".r)
+      .map(_.toInt)
+
+    StringParsers.run(number)("Java15").value should be(15)
+    StringParsers.run(number)("13").value should be(13)
+  }
+
+  "skipRight combinator" should "skip parsed right value" in {
+    val int: Parser[Int]          = StringParsers.regex("[0-9]+".r).map(_.toInt)
+    val range: Parser[(Int, Int)] = (int <* StringParsers.string(" to ")) ** int
+
+    StringParsers.run(range)("10 to 15").value should be((10, 15))
+  }
 }

@@ -56,6 +56,10 @@ trait Parsers[Error, Parser[+ _]] { self =>
 
   def slice[A](p: Parser[A]): Parser[String]
 
+  def skipLeft[B](p1: Parser[Any], p2: => Parser[B]): Parser[B] = map2(p1.slice, p2)((_, b) => b)
+
+  def skipRight[B](p1: => Parser[B], p2: Parser[Any]): Parser[B] = map2(p1, p2.slice)((a, _) => a)
+
   def run[A](p: Parser[A])(input: String): Either[String, A]
 
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps(p)
@@ -71,6 +75,8 @@ trait Parsers[Error, Parser[+ _]] { self =>
     def `*` : Parser[List[A]]                                   = self.many(p)
     def `+` : Parser[List[A]]                                   = self.many1(p)
     def slice: Parser[String]                                   = self.slice(p)
+    def *>[B](p1: Parser[B]): Parser[B]                         = self.skipLeft(p, p1)
+    def <*(p1: Parser[Any]): Parser[A]                          = self.skipRight(p, p1)
   }
 }
 
