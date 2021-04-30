@@ -46,4 +46,24 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     StringParsers.run(stringOrNumber)("11").value should be("11")
     StringParsers.run(stringOrNumber)("Java") should be(Symbol("Left"))
   }
+
+  "many combinator" should "parse string and return a list of matches" in {
+    val many: Parser[List[String]] = string("AB").*
+    StringParsers.run(many)("ABABABC").value should be(List("AB", "AB", "AB"))
+    StringParsers.run(many)("AAAABBBB").value should be(Nil)
+    StringParsers.run(many)("").value should be(Nil)
+  }
+
+  "many1 combinator" should "parse string and return a list of matches(at least one), otherwise - fail" in {
+    val count1: Parser[List[String]] = string("Scala").+
+    StringParsers.run(count1)("") should be(Symbol("left"))
+    StringParsers.run(count1)("ScalaScalaSCALA").value should be(List("Scala", "Scala"))
+  }
+
+  "product combinator" should "allow to combine two parsers into one" in {
+    val p: Parser[(List[String], List[String])] = string("Scala").* ** string("Java").+
+    StringParsers.run(p)("ScalaScalaJava").value should be((List("Scala", "Scala"), List("Java")))
+    StringParsers.run(p)("Scala") should be(Symbol("left"))
+    StringParsers.run(p)("") should be(Symbol("left"))
+  }
 }

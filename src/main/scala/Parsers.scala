@@ -41,8 +41,14 @@ trait Parsers[Error, Parser[+ _]] { self =>
       b <- p2
     } yield f(a, b)
 
+  def product[A, B](p1: => Parser[A], p2: => Parser[B]): Parser[(A, B)] = map2(p1, p2)((_, _))
+
   def listOfN[A](n: Int, p: Parser[A]): Parser[List[A]] =
     if (n <= 0) succeed(Nil) else map2(p, listOfN(n - 1, p))(_ :: _)
+
+  def many[A](p: Parser[A]): Parser[List[A]]
+
+  def many1[A](p: Parser[A]): Parser[List[A]] = map2(p, many(p))(_ :: _)
 
   def run[A](p: Parser[A])(input: String): Either[String, A]
 
@@ -55,6 +61,9 @@ trait Parsers[Error, Parser[+ _]] { self =>
     def >>[B](f: A => Parser[B]): Parser[B]                     = self.flatMap(p)(f)
     def map2[B, C](p1: => Parser[B])(f: (A, B) => C): Parser[C] = self.map2(p, p1)(f)
     def |[B >: A](p1: => Parser[B]): Parser[B]                  = self.or(p, p1)
+    def **[B](p1: => Parser[B]): Parser[(A, B)]                 = self.product(p, p1)
+    def `*` : Parser[List[A]]                                   = self.many(p)
+    def `+` : Parser[List[A]]                                   = self.many1(p)
   }
 }
 

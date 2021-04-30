@@ -24,6 +24,7 @@ package scala.parser
 
 import Parsers.Parser
 
+import scala.annotation.tailrec
 import scala.language.implicitConversions
 
 object StringParsers extends Parsers[String, Parser] {
@@ -33,6 +34,17 @@ object StringParsers extends Parsers[String, Parser] {
         Success(state.input.substring(state.offset, state.offset + s.length), s.length)
       } else Failure(s"Input string doesn't start with `$s`")
     }
+
+  override def many[A](p: Parser[A]): Parser[List[A]] = (state: ParsingState) => {
+    @tailrec
+    def go(matches: List[A], offset: Int): ParsingResult[List[A]] =
+      p(state.advanceBy(offset)) match {
+        case Success(value, consumed) => go(value :: matches, offset + consumed)
+        case Failure(_)               => Success(matches.reverse, offset)
+      }
+
+    go(Nil, offset = 0)
+  }
 
   override def succeed[A](a: A): Parser[A] = (_: ParsingState) => Success(a, 0)
 
@@ -46,7 +58,7 @@ object StringParsers extends Parsers[String, Parser] {
   override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] =
     (state: ParsingState) =>
       p(state) match {
-        case Success(a, consumed) => f(a)(state.advanceBy(consumed))
+        case Success(a, consumed) => f(a)(state.advanceBy(consumed)).advance(consumed)
         case failure: Failure     => failure
     }
 

@@ -30,6 +30,12 @@ sealed trait ParsingResult[+A] {
       case Success(a, _)  => Right(a)
       case Failure(error) => Left(error)
     }
+
+  def advance(n: Int): ParsingResult[A] =
+    this match {
+      case Success(a, consumed) => Success(a, consumed + n)
+      case _                    => this
+    }
 }
 
 object ParsingResult {
