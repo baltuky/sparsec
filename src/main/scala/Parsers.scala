@@ -60,6 +60,9 @@ trait Parsers[Error, Parser[+ _]] { self =>
 
   def skipRight[B](p1: => Parser[B], p2: Parser[Any]): Parser[B] = map2(p1, p2.slice)((a, _) => a)
 
+  def surrounded[A](left: Parser[Any], right: Parser[Any])(p: Parser[A]): Parser[A] =
+    left *> p <* right
+
   def run[A](p: Parser[A])(input: String): Either[String, A]
 
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps(p)

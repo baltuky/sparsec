@@ -97,4 +97,11 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
 
     StringParsers.run(range)("10 to 15").value should be((10, 15))
   }
+
+  "surrounded combinator" should "skip parsed left and right values" in {
+    val quote: Parser[String] = string("'")
+    val int: Parser[Int]      = StringParsers.regex("[0-9]+".r).map(_.toInt)
+
+    StringParsers.run(surrounded(quote, quote)(int))("'101'").value should be(101)
+  }
 }
