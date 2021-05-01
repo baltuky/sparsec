@@ -63,7 +63,7 @@ trait Parsers[Error, Parser[+ _]] { self =>
   def surrounded[A](left: Parser[Any], right: Parser[Any])(p: Parser[A]): Parser[A] =
     left *> p <* right
 
-  def run[A](p: Parser[A])(input: String): Either[String, A]
+  def run[A](p: Parser[A])(input: String): Either[Error, A]
 
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps(p)
 
