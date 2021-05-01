@@ -109,4 +109,11 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     val int: Parser[Int] = StringParsers.regex("\\w*".r).as(1337)
     StringParsers.run(int)("java").value should be(1337)
   }
+
+  "split combinator" should "use a separator parser to parse split values" in {
+    val int: Parser[String]        = StringParsers.regex("[0-9]*".r)
+    val spaces: Parser[String]     = StringParsers.regex("\\s+".r)
+    val ints: Parser[List[String]] = int.split(spaces)
+    StringParsers.run(ints)("1 2 3 4 5").value should be(List("1", "2", "3", "4", "5"))
+  }
 }
