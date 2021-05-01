@@ -104,4 +104,9 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
 
     StringParsers.run(surrounded(quote, quote)(int))("'101'").value should be(101)
   }
+
+  "as combinator" should "return specified value instead of parsing result" in {
+    val int: Parser[Int] = StringParsers.regex("\\w*".r).as(1337)
+    StringParsers.run(int)("java").value should be(1337)
+  }
 }

@@ -80,6 +80,7 @@ trait Parsers[Error, Parser[+ _]] { self =>
     def slice: Parser[String]                                   = self.slice(p)
     def *>[B](p1: Parser[B]): Parser[B]                         = self.skipLeft(p, p1)
     def <*(p1: Parser[Any]): Parser[A]                          = self.skipRight(p, p1)
+    def as[B](value: B): Parser[B]                              = self.slice(p).map(_ => value)
   }
 }
 
