@@ -39,4 +39,11 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     val strings: Parser[List[String]] = listOfN(3, StringParsers.string("A"))
     StringParsers.run(strings)("AAABBBCCC").value should be(List("A", "A", "A"))
   }
+
+  "or combinator" should "execute right parser when left has failed" in {
+    val stringOrNumber: Parser[String] = string("Scala") | string("11")
+    StringParsers.run(stringOrNumber)("Scala").value should be("Scala")
+    StringParsers.run(stringOrNumber)("11").value should be("11")
+    StringParsers.run(stringOrNumber)("Java") should be(Symbol("Left"))
+  }
 }

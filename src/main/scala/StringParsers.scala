@@ -36,6 +36,13 @@ object StringParsers extends Parsers[String, Parser] {
 
   override def succeed[A](a: A): Parser[A] = (_: ParsingState) => Success(a, 0)
 
+  override def or[A](p1: Parser[A], p2: => Parser[A]): Parser[A] =
+    (state: ParsingState) =>
+      p1(state) match {
+        case Failure(_)          => p2(state)
+        case success: Success[A] => success
+    }
+
   override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] =
     (state: ParsingState) =>
       p(state) match {

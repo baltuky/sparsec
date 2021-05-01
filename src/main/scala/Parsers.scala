@@ -29,6 +29,8 @@ trait Parsers[Error, Parser[+ _]] { self =>
 
   def succeed[A](a: A): Parser[A]
 
+  def or[A](p1: Parser[A], p2: => Parser[A]): Parser[A]
+
   def map[A, B](p: Parser[A])(f: A => B): Parser[B] = flatMap(p)(f andThen succeed)
 
   def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B]
@@ -52,6 +54,7 @@ trait Parsers[Error, Parser[+ _]] { self =>
     def flatMap[B](f: A => Parser[B]): Parser[B]                = self.flatMap(p)(f)
     def >>[B](f: A => Parser[B]): Parser[B]                     = self.flatMap(p)(f)
     def map2[B, C](p1: => Parser[B])(f: (A, B) => C): Parser[C] = self.map2(p, p1)(f)
+    def |[B >: A](p1: => Parser[B]): Parser[B]                  = self.or(p, p1)
   }
 }
 
