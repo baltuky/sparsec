@@ -127,4 +127,15 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     )
     StringParsers.run(string)("Java") should be(Left(error))
   }
+
+  "label combinator" should "replace parser error message with a provided one" in {
+    val string: Parser[String] = StringParsers.string("Java").label("Wrong input")
+    StringParsers.run(string)("Scala") should be(
+      Left(
+        ParseError(
+          List(
+            OffsetPosition("Scala", 0) -> "Wrong input"
+          ))
+      ))
+  }
 }

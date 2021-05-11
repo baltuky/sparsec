@@ -81,6 +81,9 @@ object StringParsers extends Parsers[Parser] {
   override def scope[A](message: String)(p: Parser[A]): Parser[A] =
     (state: ParsingState) => p(state).mapError(_.push(state.position, message))
 
+  override def label[A](message: String)(p: Parser[A]): Parser[A] =
+    (state: ParsingState) => p(state).mapError(_.copy(List(state.position -> message)))
+
   override def run[A](p: Parser[A])(input: String): Either[ParseError, A] =
     p(ParsingState(input)).extract
 }

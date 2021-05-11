@@ -68,6 +68,8 @@ trait Parsers[Parser[+ _]] { self =>
 
   def scope[A](message: String)(p: Parser[A]): Parser[A]
 
+  def label[A](message: String)(p: Parser[A]): Parser[A]
+
   def run[A](p: Parser[A])(input: String): Either[ParseError, A]
 
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps(p)
@@ -88,6 +90,7 @@ trait Parsers[Parser[+ _]] { self =>
     def as[B](value: B): Parser[B]                              = self.slice(p).map(_ => value)
     def split(separator: Parser[Any]): Parser[List[A]]          = self.split(p, separator)
     def scope(message: String): Parser[A]                       = self.scope(message)(p)
+    def label(message: String): Parser[A]                       = self.label(message)(p)
   }
 }
 
