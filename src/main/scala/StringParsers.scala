@@ -22,8 +22,6 @@
 
 package scala.parser
 
-import Parsers.Parser
-
 import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.matching.Regex

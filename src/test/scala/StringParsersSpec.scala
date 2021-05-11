@@ -22,7 +22,7 @@
 
 package scala.parser
 
-import Parsers.Parser
+import Parsers.instances._
 import StringParsers._
 
 import org.scalatest.EitherValues._
@@ -31,55 +31,53 @@ import org.scalatest.matchers.should.Matchers
 
 class StringParsersSpec extends AnyFlatSpec with Matchers {
   "string parser" should "parse string prefix" in {
-    val string: Parser[String] = StringParsers.string("scala")
-    StringParsers.run(string)("scala and java").value should be("scala")
+    string("scala").run("scala and java").value should be("scala")
   }
 
   "listOfN combinator" should "parse string prefix and return list of results" in {
-    val strings: Parser[List[String]] = listOfN(3, StringParsers.string("A"))
-    StringParsers.run(strings)("AAABBBCCC").value should be(List("A", "A", "A"))
+    listOfN(3, string("A")).run("AAABBBCCC").value should be(List("A", "A", "A"))
   }
 
   "or combinator" should "execute right parser when left has failed" in {
     val stringOrNumber: Parser[String] = string("Scala") | string("11")
-    StringParsers.run(stringOrNumber)("Scala").value should be("Scala")
-    StringParsers.run(stringOrNumber)("11").value should be("11")
-    StringParsers.run(stringOrNumber)("Java") should be(Symbol("Left"))
+    stringOrNumber.run("Scala").value should be("Scala")
+    stringOrNumber.run("11").value should be("11")
+    stringOrNumber.run("Java") should be(Symbol("Left"))
   }
 
   "many combinator" should "parse string and return a list of matches" in {
     val many: Parser[List[String]] = string("AB").*
-    StringParsers.run(many)("ABABABC").value should be(List("AB", "AB", "AB"))
-    StringParsers.run(many)("AAAABBBB").value should be(Nil)
-    StringParsers.run(many)("").value should be(Nil)
+    many.run("ABABABC").value should be(List("AB", "AB", "AB"))
+    many.run("AAAABBBB").value should be(Nil)
+    many.run("").value should be(Nil)
   }
 
   "many1 combinator" should "parse string and return a list of matches(at least one), otherwise - fail" in {
     val count1: Parser[List[String]] = string("Scala").+
-    StringParsers.run(count1)("") should be(Symbol("left"))
-    StringParsers.run(count1)("ScalaScalaSCALA").value should be(List("Scala", "Scala"))
+    count1.run("") should be(Symbol("left"))
+    count1.run("ScalaScalaSCALA").value should be(List("Scala", "Scala"))
   }
 
   "product combinator" should "allow to combine two parsers into one" in {
     val p: Parser[(List[String], List[String])] = string("Scala").* ** string("Java").+
-    StringParsers.run(p)("ScalaScalaJava").value should be((List("Scala", "Scala"), List("Java")))
-    StringParsers.run(p)("Scala") should be(Symbol("left"))
-    StringParsers.run(p)("") should be(Symbol("left"))
+    p.run("ScalaScalaJava").value should be((List("Scala", "Scala"), List("Java")))
+    p.run("Scala") should be(Symbol("left"))
+    p.run("") should be(Symbol("left"))
   }
 
   "slice" should "return input string substring" in {
     val slice: Parser[String] = string("Java").*.slice
-    StringParsers.run(slice)("JavaJavaJava").value should be("JavaJavaJava")
-    StringParsers.run(slice)("ScalaScala").value should have size 0
-    StringParsers.run(slice)("").value should have size 0
+    slice.run("JavaJavaJava").value should be("JavaJavaJava")
+    slice.run("ScalaScala").value should have size 0
+    slice.run("").value should have size 0
   }
 
   "regex parser" should "return input prefix matching to regular expression" in {
     val regex: Parser[String] = StringParsers.regex("[a-zA-Z0-9]+".r)
-    StringParsers.run(regex)("Java11").value should be("Java11")
-    StringParsers.run(regex)("Scala 13").value should be("Scala")
-    StringParsers.run(regex)("") should be(Symbol("left"))
-    StringParsers.run(regex)("___") should be(Symbol("left"))
+    regex.run("Java11").value should be("Java11")
+    regex.run("Scala 13").value should be("Scala")
+    regex.run("") should be(Symbol("left"))
+    regex.run("___") should be(Symbol("left"))
   }
 
   "skipLeft combinator" should "skip parsed left value" in {
@@ -87,50 +85,47 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
       .regex("[0-9]+".r)
       .map(_.toInt)
 
-    StringParsers.run(number)("Java15").value should be(15)
-    StringParsers.run(number)("13").value should be(13)
+    number.run("Java15").value should be(15)
+    number.run("13").value should be(13)
   }
 
   "skipRight combinator" should "skip parsed right value" in {
     val int: Parser[Int]          = StringParsers.regex("[0-9]+".r).map(_.toInt)
-    val range: Parser[(Int, Int)] = (int <* StringParsers.string(" to ")) ** int
+    val range: Parser[(Int, Int)] = (int <* string(" to ")) ** int
 
-    StringParsers.run(range)("10 to 15").value should be((10, 15))
+    range.run("10 to 15").value should be((10, 15))
   }
 
   "surrounded combinator" should "skip parsed left and right values" in {
     val quote: Parser[String] = string("'")
     val int: Parser[Int]      = StringParsers.regex("[0-9]+".r).map(_.toInt)
 
-    StringParsers.run(surrounded(quote, quote)(int))("'101'").value should be(101)
+    surrounded(quote, quote)(int).run("'101'").value should be(101)
   }
 
   "as combinator" should "return specified value instead of parsing result" in {
-    val int: Parser[Int] = StringParsers.regex("\\w*".r).as(1337)
-    StringParsers.run(int)("java").value should be(1337)
+    StringParsers.regex("\\w*".r).as(1337).run("java").value should be(1337)
   }
 
   "split combinator" should "use a separator parser to parse split values" in {
     val int: Parser[String]        = StringParsers.regex("[0-9]*".r)
     val spaces: Parser[String]     = StringParsers.regex("\\s+".r)
     val ints: Parser[List[String]] = int.split(spaces)
-    StringParsers.run(ints)("1 2 3 4 5").value should be(List("1", "2", "3", "4", "5"))
+    ints.run("1 2 3 4 5").value should be(List("1", "2", "3", "4", "5"))
   }
 
   "scope combinator" should "allow to add messages into parser error" in {
-    val string: Parser[String] = StringParsers.string("Scala").scope("parsing a string")
     val error: ParseError = ParseError(
       List(
         OffsetPosition("Java", 0) -> "parsing a string",
         OffsetPosition("Java", 0) -> "Input string doesn't start with `Scala`",
       )
     )
-    StringParsers.run(string)("Java") should be(Left(error))
+    string("Scala").scope("parsing a string").run("Java") should be(Left(error))
   }
 
   "label combinator" should "replace parser error message with a provided one" in {
-    val string: Parser[String] = StringParsers.string("Java").label("Wrong input")
-    StringParsers.run(string)("Scala") should be(
+    string("Java").label("Wrong input").run("Scala") should be(
       Left(
         ParseError(
           List(

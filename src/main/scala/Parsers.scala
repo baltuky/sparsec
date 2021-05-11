@@ -94,6 +94,13 @@ trait Parsers[Parser[+ _]] { self =>
   }
 }
 
+trait Parser[+A] extends (ParsingState => ParsingResult[A]) {
+  def run(input: String)(implicit parsers: Parsers[Parser]): Either[ParseError, A] =
+    parsers.run(this)(input)
+}
+
 object Parsers {
-  type Parser[+A] = ParsingState => ParsingResult[A]
+  object instances {
+    implicit val stringParsers: Parsers[Parser] = StringParsers
+  }
 }
