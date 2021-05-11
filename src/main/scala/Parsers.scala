@@ -66,6 +66,8 @@ trait Parsers[Parser[+ _]] { self =>
   def split[A](p: Parser[A], separator: Parser[Any]): Parser[List[A]] =
     map2(p, (separator *> p).*)(_ :: _)
 
+  def optional[A](p: Parser[A]): Parser[Option[A]] = p.map(Some(_)) | succeed(None)
+
   def scope[A](message: String)(p: Parser[A]): Parser[A]
 
   def label[A](message: String)(p: Parser[A]): Parser[A]
@@ -89,6 +91,7 @@ trait Parsers[Parser[+ _]] { self =>
     def <*(p1: Parser[Any]): Parser[A]                          = self.skipRight(p, p1)
     def as[B](value: B): Parser[B]                              = self.slice(p).map(_ => value)
     def split(separator: Parser[Any]): Parser[List[A]]          = self.split(p, separator)
+    def ? : Parser[Option[A]]                                   = self.optional(p)
     def scope(message: String): Parser[A]                       = self.scope(message)(p)
     def label(message: String): Parser[A]                       = self.label(message)(p)
   }

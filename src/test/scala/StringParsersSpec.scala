@@ -133,4 +133,15 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
           ))
       ))
   }
+
+  "optional combinator" should "make a parser optional for application" in {
+    val p: Parser[((String, Option[Int]), String)] = string("Java") ** StringParsers
+      .regex("[0-9]+".r)
+      .?
+      .map(_.map(_.toInt)) ** string("!")
+
+    p.run("Java7!").value should be((("Java", Some(7)), "!"))
+    p.run("Java!").value should be((("Java", None), "!"))
+    p.run("11!") should be(Symbol("left"))
+  }
 }
