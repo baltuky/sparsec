@@ -78,6 +78,8 @@ trait Parsers[Parser[+ _]] { self =>
 
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps(p)
 
+  def int: Parser[Int] = regex("[-+]?[0-9]+".r).map(_.toInt).label("expected an integer value")
+
   case class ParserOps[A](p: Parser[A]) {
     def map[B](f: A => B): Parser[B]                            = self.map(p)(f)
     def ^^[B](f: A => B): Parser[B]                             = self.map(p)(f)

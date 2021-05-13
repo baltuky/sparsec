@@ -150,4 +150,16 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     char('!').run("!").value should be('!')
     char('?').run("") should be(Symbol("left"))
   }
+
+  "int parser" should "parse an integer value" in {
+    int.run("+17").value should be(17)
+    int.run("512").value should be(512)
+    int.run("0").value should be(0)
+    int.run("+0").value should be(0)
+    int.run("-0").value should be(0)
+    int.run("-42").value should be(-42)
+    int.run("-") should be(Symbol("left"))
+    int.run("+") should be(Symbol("left"))
+    int.run("") should be(Symbol("left"))
+  }
 }
