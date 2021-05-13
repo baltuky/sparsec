@@ -144,4 +144,10 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     p.run("Java!").value should be((("Java", None), "!"))
     p.run("11!") should be(Symbol("left"))
   }
+
+  "char parser" should "match a single character" in {
+    char('>').run("> echo").value should be('>')
+    char('!').run("!").value should be('!')
+    char('?').run("") should be(Symbol("left"))
+  }
 }

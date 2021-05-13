@@ -26,6 +26,8 @@ import scala.language.implicitConversions
 import scala.util.matching.Regex
 
 trait Parsers[Parser[+ _]] { self =>
+  def char(c: Char): Parser[Char] = string(c.toString).map(_.head)
+
   def string(s: String): Parser[String]
 
   def regex(r: Regex): Parser[String]
