@@ -162,4 +162,12 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     int.run("+") should be(Symbol("left"))
     int.run("") should be(Symbol("left"))
   }
+
+  "eoi parser" should "guarantee input end is met" in {
+    (string("Scala") <* eoi).run("Scala").value should be("Scala")
+    eoi.run("") should be(Symbol("right"))
+
+    (char('!') <* eoi).run("! ") should be(Symbol("left"))
+    eoi.run(".") should be(Symbol("left"))
+  }
 }
