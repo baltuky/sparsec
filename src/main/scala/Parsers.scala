@@ -80,6 +80,8 @@ trait Parsers[Parser[+ _]] { self =>
 
   def whitespace: Parser[Char] = regex("\\s".r).map(_.head) | char('\t') | char('\r') | char('\n')
 
+  def token[A](p: Parser[A]): Parser[A] = p <* whitespace.*
+
   def int: Parser[Int] = regex("[-+]?[0-9]+".r).map(_.toInt).label("expected an integer value")
 
   def eoi: Parser[String] = regex("\\Z".r).label("end of input wasn't reached")

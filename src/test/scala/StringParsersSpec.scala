@@ -178,4 +178,12 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     whitespace.run(" ").value should be(' ')
     whitespace.*.run("\n\r \t \n\n").value should be(List('\n', '\r', ' ', '\t', ' ', '\n', '\n'))
   }
+
+  "token parser" should "parse sequence of values separated by whitespaces" in {
+    val tokens: Parser[List[String]] = token(StringParsers.regex("[a-zA-Z0-9]+".r)).*
+    tokens.run("Java").value should be(List("Java"))
+    tokens.run("Java and Scala").value should be(List("Java", "and", "Scala"))
+    tokens.run("Scala   13   ").value should be(List("Scala", "13"))
+    tokens.run("").value should be(Nil)
+  }
 }
