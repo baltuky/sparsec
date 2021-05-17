@@ -186,4 +186,11 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     tokens.run("Scala   13   ").value should be(List("Scala", "13"))
     tokens.run("").value should be(Nil)
   }
+
+  "thru parser" should "consume input string until specified string met (inclusively)" in {
+    thru(",").run("To be, or not to be").value should be("To be,")
+    thru(".").run("No man is an island.").value should be("No man is an island.")
+    thru(".").run(".").value should be(".")
+    thru("!").run("") should be(Symbol("left"))
+  }
 }
