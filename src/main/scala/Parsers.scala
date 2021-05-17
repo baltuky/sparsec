@@ -78,6 +78,8 @@ trait Parsers[Parser[+ _]] { self =>
 
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps(p)
 
+  def whitespace: Parser[Char] = regex("\\s".r).map(_.head) | char('\t') | char('\r') | char('\n')
+
   def int: Parser[Int] = regex("[-+]?[0-9]+".r).map(_.toInt).label("expected an integer value")
 
   def eoi: Parser[String] = regex("\\Z".r).label("end of input wasn't reached")

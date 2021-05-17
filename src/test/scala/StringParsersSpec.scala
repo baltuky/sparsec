@@ -170,4 +170,12 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     (char('!') <* eoi).run("! ") should be(Symbol("left"))
     eoi.run(".") should be(Symbol("left"))
   }
+
+  "whitespace parser" should "recognize whitespace characters" in {
+    whitespace.run("\n").value should be('\n')
+    whitespace.run("\t").value should be('\t')
+    whitespace.run("\r").value should be('\r')
+    whitespace.run(" ").value should be(' ')
+    whitespace.*.run("\n\r \t \n\n").value should be(List('\n', '\r', ' ', '\t', ' ', '\n', '\n'))
+  }
 }
