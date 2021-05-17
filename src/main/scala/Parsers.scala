@@ -85,6 +85,8 @@ trait Parsers[Parser[+ _]] { self =>
 
   def thru(s: String): Parser[String] = regex((".*?" + Pattern.quote(s)).r)
 
+  def quoted: Parser[String] = char('\"') *> thru("\"").map(_.dropRight(1))
+
   def int: Parser[Int] = regex("[-+]?[0-9]+".r).map(_.toInt).label("expected an integer value")
 
   def eoi: Parser[String] = regex("\\Z".r).label("end of input wasn't reached")

@@ -193,4 +193,10 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     thru(".").run(".").value should be(".")
     thru("!").run("") should be(Symbol("left"))
   }
+
+  "quoted parser" should "parse input enclosed into double quotes" in {
+    quoted.run("\"Just a quoted string.\"").value should be("Just a quoted string.")
+    quoted.run("\"\"").value shouldBe empty
+    quoted.run("\"") should be(Symbol("left"))
+  }
 }
