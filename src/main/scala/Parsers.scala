@@ -89,6 +89,11 @@ trait Parsers[Parser[+ _]] { self =>
 
   def int: Parser[Int] = regex("[-+]?[0-9]+".r).map(_.toInt).label("expected an integer value")
 
+  def double: Parser[Double] =
+    token(regex("[-+]?([0-9]*\\.)?[0-9]+([eE][-+]?[0-9]+)?".r))
+      .map(_.toDouble)
+      .label("expected a double value")
+
   def eoi: Parser[String] = regex("\\Z".r).label("end of input wasn't reached")
 
   case class ParserOps[A](p: Parser[A]) {

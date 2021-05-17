@@ -199,4 +199,19 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     quoted.run("\"\"").value shouldBe empty
     quoted.run("\"") should be(Symbol("left"))
   }
+
+  "double parser" should "parse double values" in {
+    double.run("+1").value should be(1.0)
+    double.run("-1").value should be(-1.0)
+    double.run("3.14").value should be(3.14)
+    double.run("0.7").value should be(0.7)
+    double.run("0").value should be(0.0)
+    double.run("1e2").value should be(100.0)
+    double.run("1e+3").value should be(1000.0)
+    double.run("10e-1").value should be(1.0)
+    double.run("1E+1").value should be(10.0)
+    double.run("1E-2").value should be(0.01)
+    double.run("-") should be(Symbol("left"))
+    double.run("") should be(Symbol("left"))
+  }
 }
