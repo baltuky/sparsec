@@ -48,8 +48,8 @@ final case class ParseError(stack: List[(Position, String)]) {
 sealed trait ParsingResult[+A] {
   def extract: Either[ParseError, A] =
     this match {
-      case Success(a, _)  => Right(a)
-      case Failure(error) => Left(error)
+      case Success(a, _)     => Right(a)
+      case Failure(error, _) => Left(error)
     }
 
   def advance(n: Int): ParsingResult[A] =
@@ -59,13 +59,13 @@ sealed trait ParsingResult[+A] {
     }
 
   def mapError(f: ParseError => ParseError): ParsingResult[A] = this match {
-    case Failure(error) => Failure(f(error))
-    case _              => this
+    case Failure(error, committed) => Failure(f(error), committed)
+    case _                         => this
   }
 }
 
 final case class Success[+A](get: A, consumed: Int) extends ParsingResult[A]
 
-final case class Failure(get: ParseError) extends ParsingResult[Nothing] {
+final case class Failure(get: ParseError, isCommitted: Boolean) extends ParsingResult[Nothing] {
   override def toString: String = get.toString
 }

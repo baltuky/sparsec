@@ -31,15 +31,21 @@ object StringParsers extends Parsers[Parser] {
     (state: ParsingState) => {
       if (state.input.startsWith(s, state.offset))
         Success(state.slice(s.length), s.length)
-      else Failure(state.toError(s"Input string doesn't start with `$s`"))
+      else Failure(state.toError(s"Input string doesn't start with `$s`"), isCommitted = false)
     }
 
   override def regex(r: Regex): Parser[String] =
-    (state: ParsingState) =>
-      r.findPrefixOf(state.input.substring(state.offset)) match {
+    (state: ParsingState) => {
+      val source: String = state.input.substring(state.offset)
+      r.findPrefixOf(source) match {
         case Some(prefix) => Success(prefix, prefix.length)
         case None =>
-          Failure(state.toError(s"Input prefix doesn't match to `${r.toString()}` regex"))
+          val found: String = source.headOption.map(_.toString).getOrElse("end of source")
+          Failure(
+            state.toError(s"string matching regex '$r' expected but $found found"),
+            isCommitted = false
+          )
+      }
     }
 
   override def many[A](p: Parser[A]): Parser[List[A]] = (state: ParsingState) => {
@@ -47,7 +53,7 @@ object StringParsers extends Parsers[Parser] {
     def go(matches: List[A], offset: Int): ParsingResult[List[A]] =
       p(state.advanceBy(offset)) match {
         case Success(value, consumed) => go(value :: matches, offset + consumed)
-        case Failure(_)               => Success(matches.reverse, offset)
+        case Failure(_, _)            => Success(matches.reverse, offset)
       }
 
     go(Nil, offset = 0)
@@ -60,13 +66,20 @@ object StringParsers extends Parsers[Parser] {
         case failure: Failure     => failure
     }
 
+  override def commit[A](p: Parser[A]): Parser[A] =
+    (state: ParsingState) =>
+      p(state) match {
+        case Failure(error, _)        => Failure(error, isCommitted = true)
+        case result: ParsingResult[A] => result
+    }
+
   override def succeed[A](a: A): Parser[A] = (_: ParsingState) => Success(a, 0)
 
   override def or[A](p1: Parser[A], p2: => Parser[A]): Parser[A] =
     (state: ParsingState) =>
       p1(state) match {
-        case Failure(_)          => p2(state)
-        case success: Success[A] => success
+        case Failure(_, false)        => p2(state)
+        case result: ParsingResult[A] => result
     }
 
   override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] =

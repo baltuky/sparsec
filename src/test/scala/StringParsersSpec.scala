@@ -214,4 +214,20 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     double.run("-") should be(Symbol("left"))
     double.run("") should be(Symbol("left"))
   }
+
+  "commit combinator" should "prevent backtracking and propagate an error" in {
+    val parser: Parser[String] = char('$') *> {
+      char('>') *> string("UNKNOWN").commit.label("Failed to parse UNKNOWN value") |
+        char('>') *> string("BACKTRACKED") |
+        char('1') ** whitespace.* ** char('-') ** whitespace.* *> string("RED") |
+        char('2') ** whitespace.* ** char('-') ** whitespace.* *> string("GREEN") |
+        char('3') ** whitespace.* ** char('-') ** whitespace.* *> string("BLUE")
+    }
+
+    parser.run("$1 - RED").value should be("RED")
+    parser.run("$2 - GREEN").value should be("GREEN")
+    parser.run("$3 - BLUE").value should be("BLUE")
+    parser.run("$>UNKNOWN").value should be("UNKNOWN")
+    parser.run("$>BACKTRACKED") should be(Symbol("left"))
+  }
 }

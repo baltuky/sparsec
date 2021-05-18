@@ -69,6 +69,8 @@ trait Parsers[Parser[+ _]] { self =>
   def split[A](p: Parser[A], separator: Parser[Any]): Parser[List[A]] =
     map2(p, (separator *> p).*)(_ :: _)
 
+  def commit[A](p: Parser[A]): Parser[A]
+
   def optional[A](p: Parser[A]): Parser[Option[A]] = p.map(Some(_)) | succeed(None)
 
   def scope[A](message: String)(p: Parser[A]): Parser[A]
@@ -114,6 +116,7 @@ trait Parsers[Parser[+ _]] { self =>
     def ? : Parser[Option[A]]                                   = self.optional(p)
     def scope(message: String): Parser[A]                       = self.scope(message)(p)
     def label(message: String): Parser[A]                       = self.label(message)(p)
+    def commit: Parser[A]                                       = self.commit(p)
   }
 }
 
