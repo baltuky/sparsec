@@ -20,7 +20,7 @@
  *  SOFTWARE.
  */
 
-package scala.parser
+package scala.sparsec
 
 case class ParsingState(input: String, offset: Int = 0) {
   def position: Position = OffsetPosition(input, offset)

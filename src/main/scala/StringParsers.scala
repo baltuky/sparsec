@@ -20,7 +20,7 @@
  *  SOFTWARE.
  */
 
-package scala.parser
+package scala.sparsec
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions

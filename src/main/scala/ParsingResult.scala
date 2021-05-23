@@ -20,7 +20,7 @@
  *  SOFTWARE.
  */
 
-package scala.parser
+package scala.sparsec
 
 final case class ParseError(stack: List[(Position, String)]) {
   def push(position: Position, message: String): ParseError = copy((position, message) :: stack)

@@ -20,7 +20,7 @@
  *  SOFTWARE.
  */
 
-package scala.parser
+package scala.sparsec
 
 import Parsers.instances._
 import StringParsers._

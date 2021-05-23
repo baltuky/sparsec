@@ -20,7 +20,7 @@
  *  SOFTWARE.
  */
 
-package scala.parser
+package scala.sparsec
 
 import java.util.regex.Pattern
 import scala.language.implicitConversions
