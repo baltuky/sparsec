@@ -23,5 +23,7 @@
 package scala.parser
 
 case class ParsingState(input: String, offset: Int = 0) {
+  def slice(n: Int): String = input.slice(offset, offset + n)
+
   def advanceBy(n: Int): ParsingState = copy(offset = offset + n)
 }

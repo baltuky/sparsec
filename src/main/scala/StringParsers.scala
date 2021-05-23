@@ -31,7 +31,7 @@ object StringParsers extends Parsers[String, Parser] {
   override def string(s: String): Parser[String] =
     (state: ParsingState) => {
       if (state.input.startsWith(s, state.offset)) {
-        Success(state.input.substring(state.offset, state.offset + s.length), s.length)
+        Success(state.slice(s.length), s.length)
       } else Failure(s"Input string doesn't start with `$s`")
     }
 
@@ -45,6 +45,13 @@ object StringParsers extends Parsers[String, Parser] {
 
     go(Nil, offset = 0)
   }
+
+  override def slice[A](p: Parser[A]): Parser[String] =
+    (state: ParsingState) =>
+      p(state) match {
+        case Success(_, consumed) => Success(state.slice(consumed), consumed)
+        case failure: Failure     => failure
+    }
 
   override def succeed[A](a: A): Parser[A] = (_: ParsingState) => Success(a, 0)
 

@@ -66,4 +66,11 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     StringParsers.run(p)("Scala") should be(Symbol("left"))
     StringParsers.run(p)("") should be(Symbol("left"))
   }
+
+  "slice" should "return input string substring" in {
+    val slice: Parser[String] = string("Java").*.slice
+    StringParsers.run(slice)("JavaJavaJava").value should be("JavaJavaJava")
+    StringParsers.run(slice)("ScalaScala").value should have size 0
+    StringParsers.run(slice)("").value should have size 0
+  }
 }
