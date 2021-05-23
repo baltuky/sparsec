@@ -22,7 +22,28 @@
 
 package scala.parser
 
-import ParsingResult.ParseError
+final case class ParseError(stack: List[(Position, String)]) {
+  def push(position: Position, message: String): ParseError = copy((position, message) :: stack)
+
+  override def toString: String =
+    if (stack.isEmpty) "[No error messages]"
+    else {
+      val collapsed: List[(Position, String)] = collapse(stack)
+      collapsed.map(format).mkString("\n") + "\n\n" + context(collapsed.last)
+    }
+
+  private def format(error: (Position, String)): String = s"[${error._1}] failure: ${error._2}"
+
+  private def context(last: (Position, String)): String = last._1.contents + "\n" + last._1.caret
+
+  private def collapse(stack: List[(Position, String)]): List[(Position, String)] =
+    stack
+      .groupBy(_._1)
+      .view
+      .mapValues(_.map(_._2).mkString("; "))
+      .toList
+      .sortBy(_._1)(Ordering.fromLessThan(_ < _))
+}
 
 sealed trait ParsingResult[+A] {
   def extract: Either[ParseError, A] =
@@ -36,12 +57,15 @@ sealed trait ParsingResult[+A] {
       case Success(a, consumed) => Success(a, consumed + n)
       case _                    => this
     }
-}
 
-object ParsingResult {
-  type ParseError = String
+  def mapError(f: ParseError => ParseError): ParsingResult[A] = this match {
+    case Failure(error) => Failure(f(error))
+    case _              => this
+  }
 }
 
 final case class Success[+A](get: A, consumed: Int) extends ParsingResult[A]
 
-final case class Failure(get: ParseError) extends ParsingResult[Nothing]
+final case class Failure(get: ParseError) extends ParsingResult[Nothing] {
+  override def toString: String = get.toString
+}

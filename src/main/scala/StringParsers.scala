@@ -28,19 +28,20 @@ import scala.annotation.tailrec
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 
-object StringParsers extends Parsers[String, Parser] {
+object StringParsers extends Parsers[Parser] {
   override def string(s: String): Parser[String] =
     (state: ParsingState) => {
-      if (state.input.startsWith(s, state.offset)) {
+      if (state.input.startsWith(s, state.offset))
         Success(state.slice(s.length), s.length)
-      } else Failure(s"Input string doesn't start with `$s`")
+      else Failure(state.toError(s"Input string doesn't start with `$s`"))
     }
 
   override def regex(r: Regex): Parser[String] =
     (state: ParsingState) =>
       r.findPrefixOf(state.input.substring(state.offset)) match {
         case Some(prefix) => Success(prefix, prefix.length)
-        case None         => Failure(s"Input prefix doesn't match to `${r.toString()}` regex")
+        case None =>
+          Failure(state.toError(s"Input prefix doesn't match to `${r.toString()}` regex"))
     }
 
   override def many[A](p: Parser[A]): Parser[List[A]] = (state: ParsingState) => {
@@ -77,6 +78,9 @@ object StringParsers extends Parsers[String, Parser] {
         case failure: Failure     => failure
     }
 
-  override def run[A](p: Parser[A])(input: String): Either[String, A] =
+  override def scope[A](message: String)(p: Parser[A]): Parser[A] =
+    (state: ParsingState) => p(state).mapError(_.push(state.position, message))
+
+  override def run[A](p: Parser[A])(input: String): Either[ParseError, A] =
     p(ParsingState(input)).extract
 }

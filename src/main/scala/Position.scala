@@ -22,12 +22,24 @@
 
 package scala.parser
 
-case class ParsingState(input: String, offset: Int = 0) {
-  def position: Position = OffsetPosition(input, offset)
+sealed trait Position {
+  def line: Int
+  def column: Int
+  def contents: String
+  def caret: String              = contents.take(column - 1).map(ch => if (ch == '\t') ch else '-') + "^"
+  def <(that: Position): Boolean = line < that.line || line == that.line && column < that.column
+}
 
-  def toError(message: String): ParseError = ParseError(List(position -> message))
+final case class OffsetPosition(source: String, offset: Int) extends Position {
+  override def line: Int = source.slice(0, offset + 1).count(_ == '\n') + 1
 
-  def slice(n: Int): String = input.slice(offset, offset + n)
+  override def column: Int = source.slice(0, offset + 1).lastIndexOf('\n') match {
+    case -1    => offset + 1
+    case start => offset - start
+  }
 
-  def advanceBy(n: Int): ParsingState = copy(offset = offset + n)
+  override def contents: String =
+    if (1 < source.length) source.linesIterator.drop(line - 1).next else ""
+
+  override def toString: String = s"$line.$column"
 }

@@ -25,7 +25,7 @@ package scala.parser
 import scala.language.implicitConversions
 import scala.util.matching.Regex
 
-trait Parsers[Error, Parser[+ _]] { self =>
+trait Parsers[Parser[+ _]] { self =>
   def string(s: String): Parser[String]
 
   def regex(r: Regex): Parser[String]
@@ -66,7 +66,9 @@ trait Parsers[Error, Parser[+ _]] { self =>
   def split[A](p: Parser[A], separator: Parser[Any]): Parser[List[A]] =
     map2(p, (separator *> p).*)(_ :: _)
 
-  def run[A](p: Parser[A])(input: String): Either[Error, A]
+  def scope[A](message: String)(p: Parser[A]): Parser[A]
+
+  def run[A](p: Parser[A])(input: String): Either[ParseError, A]
 
   implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps(p)
 
@@ -85,6 +87,7 @@ trait Parsers[Error, Parser[+ _]] { self =>
     def <*(p1: Parser[Any]): Parser[A]                          = self.skipRight(p, p1)
     def as[B](value: B): Parser[B]                              = self.slice(p).map(_ => value)
     def split(separator: Parser[Any]): Parser[List[A]]          = self.split(p, separator)
+    def scope(message: String): Parser[A]                       = self.scope(message)(p)
   }
 }
 

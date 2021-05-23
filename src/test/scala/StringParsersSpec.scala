@@ -116,4 +116,15 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     val ints: Parser[List[String]] = int.split(spaces)
     StringParsers.run(ints)("1 2 3 4 5").value should be(List("1", "2", "3", "4", "5"))
   }
+
+  "scope combinator" should "allow to add messages into parser error" in {
+    val string: Parser[String] = StringParsers.string("Scala").scope("parsing a string")
+    val error: ParseError = ParseError(
+      List(
+        OffsetPosition("Java", 0) -> "parsing a string",
+        OffsetPosition("Java", 0) -> "Input string doesn't start with `Scala`",
+      )
+    )
+    StringParsers.run(string)("Java") should be(Left(error))
+  }
 }
