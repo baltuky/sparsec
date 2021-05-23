@@ -73,6 +73,13 @@ object StringParsers extends Parsers[Parser] {
         case result: ParsingResult[A] => result
     }
 
+  override def attempt[A](p: Parser[A]): Parser[A] =
+    (state: ParsingState) =>
+      p(state) match {
+        case Failure(error, _)        => Failure(error, isCommitted = false)
+        case result: ParsingResult[A] => result
+    }
+
   override def succeed[A](a: A): Parser[A] = (_: ParsingState) => Success(a, 0)
 
   override def or[A](p1: Parser[A], p2: => Parser[A]): Parser[A] =

@@ -230,4 +230,8 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     parser.run("$>UNKNOWN").value should be("UNKNOWN")
     parser.run("$>BACKTRACKED") should be(Symbol("left"))
   }
+
+  "attempt combinator" should "uncommit a parser and allow backtracking" in {
+    (string("III").commit.attempt | string("IIX")).run("IIX").value should be("IIX")
+  }
 }
