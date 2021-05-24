@@ -118,7 +118,7 @@ class StringParsersSpec extends AnyFlatSpec with Matchers {
     val error: ParseError = ParseError(
       List(
         OffsetPosition("Java", 0) -> "parsing a string",
-        OffsetPosition("Java", 0) -> "Input string doesn't start with `Scala`",
+        OffsetPosition("Java", 0) -> "string 'Scala' expected but 'Java' found",
       )
     )
     string("Scala").scope("parsing a string").run("Java") should be(Left(error))

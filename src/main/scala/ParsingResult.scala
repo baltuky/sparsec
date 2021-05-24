@@ -62,6 +62,11 @@ sealed trait ParsingResult[+A] {
     case Failure(error, committed) => Failure(f(error), committed)
     case _                         => this
   }
+
+  def commitIf(commit: Boolean): ParsingResult[A] = this match {
+    case Failure(error, committed) => Failure(error, committed | commit)
+    case _                         => this
+  }
 }
 
 final case class Success[+A](get: A, consumed: Int) extends ParsingResult[A]

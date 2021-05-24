@@ -29,10 +29,27 @@ import scala.util.matching.Regex
 object StringParsers extends Parsers[Parser] {
   override def string(s: String): Parser[String] =
     (state: ParsingState) => {
-      if (state.input.startsWith(s, state.offset))
-        Success(state.slice(s.length), s.length)
-      else Failure(state.toError(s"Input string doesn't start with `$s`"), isCommitted = false)
+      val i: Int = indexOfNonMatching(state.slice(s.length), s, 0)
+      if (i == -1) {
+        Success(s, s.length)
+      } else {
+        val found: String =
+          if (state.input.length == state.offset) "end of source" else s"'${state.slice(s.length)}'"
+
+        Failure(
+          state.advanceBy(i).toError(s"string '$s' expected but $found found"),
+          isCommitted = i != 0
+        )
+      }
     }
+
+  @tailrec
+  private def indexOfNonMatching(source: String, pattern: String, offset: Int): Int = {
+    if (offset < source.length && offset < pattern.length && source(offset) == pattern(offset))
+      indexOfNonMatching(source, pattern, offset + 1)
+    else if (pattern.length <= offset) -1
+    else offset
+  }
 
   override def regex(r: Regex): Parser[String] =
     (state: ParsingState) => {
@@ -92,8 +109,11 @@ object StringParsers extends Parsers[Parser] {
   override def flatMap[A, B](p: Parser[A])(f: A => Parser[B]): Parser[B] =
     (state: ParsingState) =>
       p(state) match {
-        case Success(a, consumed) => f(a)(state.advanceBy(consumed)).advance(consumed)
-        case failure: Failure     => failure
+        case Success(a, consumed) =>
+          f(a)(state.advanceBy(consumed))
+            .commitIf(consumed != 0)
+            .advance(consumed)
+        case failure: Failure => failure
     }
 
   override def scope[A](message: String)(p: Parser[A]): Parser[A] =
